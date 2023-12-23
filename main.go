@@ -5,6 +5,7 @@ import ("fmt"
 		"encoding/json"
 		"reflect"
 		"strconv"
+		"github.com/gorilla/mux"
 		)
 type Language struct {
 	name string
@@ -21,10 +22,13 @@ func returnLanguages(w http.ResponseWriter, r *http.Request){
 	json.NewEncoder(w).Encode(languages)
 }
 func returnLanguage(w http.ResponseWriter, r *http.Request){
-	log.Println("returnLanguage")
-	log.Println(r.URL.Path)
-	key := r.URL.Path[len("/language/"):]
-	log.Println("key is ",key)
+	// Changing following because of gorilla/mux
+	// log.Println("returnLanguage")
+	// log.Println(r.URL.Path)
+	// key := r.URL.Path[len("/language/"):]
+	// log.Println("key is ",key)
+	vars := mux.Vars(r)
+	key := vars["id"]
 	for _, languages := range languages {
 		// log.Println("Type of key is: \n", reflect.TypeOf(key))
 		id,err := strconv.Atoi(key)
@@ -49,10 +53,15 @@ func returnLanguage(w http.ResponseWriter, r *http.Request){
 	// json.NewEncoder(w).Encode(languages)
 }
 func startServer(){
-	http.HandleFunc("/",mainpage)
-	http.HandleFunc("/languages",returnLanguages)
-	http.HandleFunc("/language/",returnLanguage)
-	http.ListenAndServe(":8080",nil)
+	// replacing following with gorilla/mux
+	// http.HandleFunc("/",mainpage)
+	// http.HandleFunc("/languages",returnLanguages)
+	// http.HandleFunc("/language/",returnLanguage)
+	myRouter := mux.NewRouter().StrictSlash(true)
+	myRouter.HandleFunc("/",mainpage)
+	myRouter.HandleFunc("/languages",returnLanguages)
+	myRouter.HandleFunc("/language/{id}",returnLanguage)
+	http.ListenAndServe(":8080",myRouter)
 }
 func main(){
 	languages = []Language{
