@@ -5,3 +5,4 @@ CREATE TABLE `languages`(
 );
 INSERT INTO `languages`(`id`, `name`)
 VALUES(1, 'Java'),(2, 'python'),(3, 'golang');
+\! echo "Done with SQL script ############";

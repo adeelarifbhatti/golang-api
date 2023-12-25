@@ -1,74 +1,43 @@
 package main
-import ("fmt"
-		"net/http"
-		"log"
-		"encoding/json"
-		"reflect"
-		"strconv"
-		"github.com/gorilla/mux"
-		)
-type Language struct {
-	name string
+import (
+	"database/sql"
+	"fmt"
+	_ "github.com/go-sql-driver/mysql"
+	"log"
+)
+type language struct {
 	id int
+	name string
 }
-var languages []Language
+func checkError(e error){
+	if e!= nil {
+		log.Fatalln(e)
+	}
+}
 
-func mainpage(w http.ResponseWriter, r *http.Request){
-	fmt.Fprintf(w,"Welcome")
-	log.Println("Docker changes")
-}
-func returnLanguages(w http.ResponseWriter, r *http.Request){
-	log.Println("returnLanguages")
-	json.NewEncoder(w).Encode(languages)
-}
-func returnLanguage(w http.ResponseWriter, r *http.Request){
-	// Changing following because of gorilla/mux
-	// log.Println("returnLanguage")
-	// log.Println(r.URL.Path)
-	// key := r.URL.Path[len("/language/"):]
-	// log.Println("key is ",key)
-	vars := mux.Vars(r)
-	key := vars["id"]
-	for _, languages := range languages {
-		// log.Println("Type of key is: \n", reflect.TypeOf(key))
-		id,err := strconv.Atoi(key)
-		log.Println("err in strconv.Atoi(languages.id) is ", err," id is ", reflect.TypeOf(id))
-		// log.Println("Type of key is: \n", reflect.TypeOf(key))
-		if languages.id == id {
-			fmt.Println("languages.id ",languages.id)
-			fmt.Println("languages.name ",languages.name)
-			fmt.Println(" languages.id ", languages.id)
-			json.NewEncoder(w).Encode(languages.id)
-			fmt.Println("languages.name ", languages.name)
-			fmt.Println("language json response  ",languages)
-			json.NewEncoder(w).Encode(languages.name)
-			// w.Header().Set("Content-Type", "application/json")
-			// w.WriteHeader(http.StatusCreated)
-			json.NewEncoder(w).Encode(languages)
-			fmt.Println("languages.id ",languages.id)
-		}
-	}
-	// log.Println(languages)
-	// log.Println(json.NewEncoder(w).Encode(languages))
-	// json.NewEncoder(w).Encode(languages)
-}
-func startServer(){
-	// replacing following with gorilla/mux
-	// http.HandleFunc("/",mainpage)
-	// http.HandleFunc("/languages",returnLanguages)
-	// http.HandleFunc("/language/",returnLanguage)
-	myRouter := mux.NewRouter().StrictSlash(true)
-	myRouter.HandleFunc("/",mainpage)
-	myRouter.HandleFunc("/languages",returnLanguages)
-	myRouter.HandleFunc("/language/{id}",returnLanguage)
-	http.ListenAndServe(":8080",myRouter)
-}
 func main(){
-	languages = []Language{
-		Language{name:"Golang", id: 1},
-		Language{name:"Java", id: 2},
-		Language{name:"Python", id: 3},
-		Language{name:"Kotin", id: 4},
+	connectString := fmt.Sprintf("%v:%v@tcp(mysql:3306)/%v",DbUser,DbPassword,DBName)
+	db, err := sql.Open("mysql", connectString)
+	checkError(err)
+	// var id int
+	// var name string
+	// fmt.Print("Type a number")
+	// fmt.Scan(&id)
+	// fmt.Print("Type a name")
+	// fmt.Scan(&name)
+	result, err := db.Exec("insert into languages values(10,'kotlin')")
+	checkError(err)
+	lastInsertId, err := result.LastInsertId()
+	fmt.Println("lastInsertId is ",lastInsertId)
+	rowsAffected, err := result.RowsAffected()
+	fmt.Println("rowsAffected is ", rowsAffected)
+	rows, err := db.Query("select * from languages")
+	fmt.Println("err is   " ,err)
+	var lang language
+	for rows.Next(){
+		err := rows.Scan(&lang.id,&lang.name)
+		fmt.Println("err is   " ,err)
+		fmt.Println(lang)
 	}
-	startServer()
+	defer db.Close()
 }
