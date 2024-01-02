@@ -52,3 +52,8 @@ func (lang *language) createLanguage(db *sql.DB) error {
 	lang.id = int(id)
 	return nil
 }
+func (lang *language) updateLanguage(db *sql.DB) error {
+	query := fmt.Sprintf("update languages set name='%v' where id=%v",lang.name, lang.id)
+	_,err := db.Exec(query)
+	return err
+}

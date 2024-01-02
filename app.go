@@ -36,6 +36,7 @@ func (app *App) handleRoute() {
 	 app.Router.HandleFunc("/languages", app.getLanguages).Methods("GET")
 	 app.Router.HandleFunc("/language/{id}", app.getLanguage).Methods("GET")
 	 app.Router.HandleFunc("/language", app.createLanguage).Methods("POST")
+	 app.Router.HandleFunc("/language/{id}", app.updateLanguage).Methods("PUT")
 }
 
 func sendResponse(w http.ResponseWriter, statusCode int, payload interface{}){
@@ -93,6 +94,27 @@ func (app *App) createLanguage(w http.ResponseWriter, r *http.Request){
 	err = lang.createLanguage(app.DB)
 	if err != nil {
 		sendError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	sendResponse(w,http.StatusOK,lang)
+}
+func (app *App) updateLanguage(w http.ResponseWriter, r *http.Request){
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		sendError(w, http.StatusBadRequest, "language ID is not correct")
+		return
+	}
+	var lang language
+	err = json.NewDecoder(r.Body).Decode(&lang)
+	if err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	lang.id = id
+	err = lang.updateLanguage(app.DB)
+	if err != nil {
+		sendError(w,http.StatusInternalServerError, err.Error())
 		return
 	}
 	sendResponse(w,http.StatusOK,lang)
