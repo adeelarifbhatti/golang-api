@@ -38,3 +38,17 @@ func (l *language) getLanguage(db *sql.DB) error {
 	}
 	return err
 }
+func (lang *language) createLanguage(db *sql.DB) error {
+	query := fmt.Sprintf("insert into languages(name) values('%v')",lang.name)
+	result, err := db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return err
+	}
+	lang.id = int(id)
+	return nil
+}

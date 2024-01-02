@@ -35,6 +35,7 @@ func (app *App) Run(address string) {
 func (app *App) handleRoute() {
 	 app.Router.HandleFunc("/languages", app.getLanguages).Methods("GET")
 	 app.Router.HandleFunc("/language/{id}", app.getLanguage).Methods("GET")
+	 app.Router.HandleFunc("/language", app.createLanguage).Methods("POST")
 }
 
 func sendResponse(w http.ResponseWriter, statusCode int, payload interface{}){
@@ -81,5 +82,18 @@ func (app *App) getLanguage(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Print("\n from app getLanguage  ",lang, "  and  ", lang.id, "  and ", id,"\n")
 	fmt.Println(err)
+	sendResponse(w,http.StatusOK,lang)
+}
+func (app *App) createLanguage(w http.ResponseWriter, r *http.Request){
+	var lang language
+	err := json.NewDecoder(r.Body).Decode(&lang)
+	if err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid json Format")
+	}
+	err = lang.createLanguage(app.DB)
+	if err != nil {
+		sendError(w, http.StatusBadRequest, err.Error())
+		return
+	}
 	sendResponse(w,http.StatusOK,lang)
 }
