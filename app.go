@@ -37,6 +37,7 @@ func (app *App) handleRoute() {
 	 app.Router.HandleFunc("/language/{id}", app.getLanguage).Methods("GET")
 	 app.Router.HandleFunc("/language", app.createLanguage).Methods("POST")
 	 app.Router.HandleFunc("/language/{id}", app.updateLanguage).Methods("PUT")
+	 app.Router.HandleFunc("/language/{id}", app.deleteLanguage).Methods("DELETE")
 }
 
 func sendResponse(w http.ResponseWriter, statusCode int, payload interface{}){
@@ -70,7 +71,7 @@ func (app *App) getLanguage(w http.ResponseWriter, r *http.Request) {
 		sendError(w,http.StatusBadRequest,err.Error())
 		return
 	}	
-	lang := language{id: id}
+	lang := language{ID: id}
 	err = lang.getLanguage(app.DB)
 	if err != nil {
 		switch err {
@@ -81,7 +82,7 @@ func (app *App) getLanguage(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	fmt.Print("\n from app getLanguage  ",lang, "  and  ", lang.id, "  and ", id,"\n")
+	fmt.Print("\n from app getLanguage  ",lang, "  and  ", lang.ID, "  and ", id,"\n")
 	fmt.Println(err)
 	sendResponse(w,http.StatusOK,lang)
 }
@@ -111,11 +112,26 @@ func (app *App) updateLanguage(w http.ResponseWriter, r *http.Request){
 		sendError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
-	lang.id = id
+	lang.ID = id
 	err = lang.updateLanguage(app.DB)
 	if err != nil {
 		sendError(w,http.StatusInternalServerError, err.Error())
 		return
 	}
 	sendResponse(w,http.StatusOK,lang)
+}
+func (app *App) deleteLanguage(w http.ResponseWriter, r *http.Request){
+	vars := mux.Vars(r)
+	key, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		sendError(w,http.StatusBadRequest,"invalid Language ID")
+		return
+	}
+	l := language{ID: key}
+	err = l.deleteLanguage(app.DB)
+	if err != nil {
+		sendError(w,http.StatusInternalServerError, err.Error())
+	return
+	}
+	sendResponse(w, http.StatusOK, map[string]string{"result": "Successfully Deleted"})
 }

@@ -3,10 +3,11 @@ package main
 import (
 		"database/sql"
 		"fmt"
+		"errors"
 	)
 type language struct {
-	id int `json:"id"`
-	name string `json:"name"`
+	ID int `json:"id"`
+	NAME string `json:"name"`
 }
 func getLanguages(db *sql.DB) ([]language,error){
 	query := "select * from languages"
@@ -17,7 +18,7 @@ func getLanguages(db *sql.DB) ([]language,error){
 	lang := []language{}
 	for rows.Next(){
 		var l language
-		err := rows.Scan(&l.id, &l.name)
+		err := rows.Scan(&l.ID, &l.NAME)
 		fmt.Println("From get Languages in Model ",l)
 		if err != nil {
 			return nil, err	
@@ -29,17 +30,17 @@ func getLanguages(db *sql.DB) ([]language,error){
 }
 func (l *language) getLanguage(db *sql.DB) error {
 	fmt.Println("inside App getLanguage")
-	query := fmt.Sprintf("select name from languages where id=%v", l.id)
+	query := fmt.Sprintf("select name from languages where id=%v", l.ID)
 	row := db.QueryRow(query)
-	err := row.Scan(&l.name)
-	fmt.Println("\nfrom model getLanguage  ", l.name ,"\n")
+	err := row.Scan(&l.NAME)
+	fmt.Println("\nfrom model getLanguage  ", l.NAME ,"\n")
 	if err != nil {
 		return err
 	}
 	return err
 }
 func (lang *language) createLanguage(db *sql.DB) error {
-	query := fmt.Sprintf("insert into languages(name) values('%v')",lang.name)
+	query := fmt.Sprintf("insert into languages(name) values('%v')",lang.NAME)
 	result, err := db.Exec(query)
 	if err != nil {
 		return err
@@ -49,11 +50,21 @@ func (lang *language) createLanguage(db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	lang.id = int(id)
+	lang.ID = int(id)
 	return nil
 }
 func (lang *language) updateLanguage(db *sql.DB) error {
-	query := fmt.Sprintf("update languages set name='%v' where id=%v",lang.name, lang.id)
+	query := fmt.Sprintf("update languages set name='%v' where id=%v",lang.NAME, lang.ID)
+	result,err := db.Exec(query)
+	rowsAffected, err := result.RowsAffected()
+	fmt.Println("result.RowsAffected() >> ", rowsAffected)
+	if rowsAffected == 0 {
+		return errors.New("No such rows exists")
+	}
+	return err
+}
+func (lang *language) deleteLanguage(db *sql.DB) error {
+	query := fmt.Sprintf("delete from languages where id=%v", lang.ID)
 	_,err := db.Exec(query)
 	return err
 }
