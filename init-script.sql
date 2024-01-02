@@ -1,6 +1,6 @@
 USE `language`;
 CREATE TABLE `languages`(
-    `id` int Primary Key,
+    `id` int Primary Key NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(255)
 );
 INSERT INTO `languages`(`id`, `name`)
