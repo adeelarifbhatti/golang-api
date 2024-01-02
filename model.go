@@ -27,3 +27,14 @@ func getLanguages(db *sql.DB) ([]language,error){
 	fmt.Println(lang)
 	return lang, nil
 }
+func (l *language) getLanguage(db *sql.DB) error {
+	fmt.Println("inside App getLanguage")
+	query := fmt.Sprintf("select name from languages where id=%v", l.id)
+	row := db.QueryRow(query)
+	err := row.Scan(&l.name)
+	fmt.Println("\nfrom model getLanguage  ", l.name ,"\n")
+	if err != nil {
+		return err
+	}
+	return err
+}

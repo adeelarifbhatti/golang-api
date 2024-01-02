@@ -7,6 +7,7 @@ import  (
 		_ "github.com/go-sql-driver/mysql"
 		"log"
 		"fmt"
+		"strconv"
 		"encoding/json"
 		)
 type App struct {
@@ -33,12 +34,15 @@ func (app *App) Run(address string) {
 }
 func (app *App) handleRoute() {
 	 app.Router.HandleFunc("/languages", app.getLanguages).Methods("GET")
-	//  app.Router.HandleFunc("/language/{id}", app.getLanguage).Methods("GET")
-
+	 app.Router.HandleFunc("/language/{id}", app.getLanguage).Methods("GET")
 }
+
 func sendResponse(w http.ResponseWriter, statusCode int, payload interface{}){
-	fmt.Println("Payload Unmarshal ",payload)
-	response, _ := json.Marshal(payload)
+	fmt.Println("Payload Unmarshal " , payload)
+	response, err := json.Marshal(payload)
+	if err != nil {
+		fmt.Println("error:", err.Error())
+	}
 	w.Header().Set("Content-Type","application/json; charset=utf-8")
 	w.WriteHeader(statusCode)
 	fmt.Println("From sendResponse app ",response)
@@ -56,4 +60,26 @@ func (app *App) getLanguages(w http.ResponseWriter, r *http.Request){
 	}
 	fmt.Println("From getLanguages from app  ", languages)
 	sendResponse(w,http.StatusOK,languages)
+}
+func (app *App) getLanguage(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id,err := strconv.Atoi(vars["id"])
+	if err != nil {
+		sendError(w,http.StatusBadRequest,err.Error())
+		return
+	}	
+	lang := language{id: id}
+	err = lang.getLanguage(app.DB)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			sendError(w, http.StatusNotFound, "Language not found")
+		default:
+			sendError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+	fmt.Print("\n from app getLanguage  ",lang, "  and  ", lang.id, "  and ", id,"\n")
+	fmt.Println(err)
+	sendResponse(w,http.StatusOK,lang)
 }
