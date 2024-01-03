@@ -19,7 +19,7 @@ func checkError(e error){
 		log.Fatalln(e)
 	}
 }
-func (app *App) Start() error {
+func (app *App) Start(dbuser string, DbPassword string, DBName string) error {
 	var err error
 	connectString := fmt.Sprintf("%v:%v@tcp(mysql:3306)/%v",DbUser,DbPassword,DBName)
 	app.DB, err = sql.Open("mysql", connectString)
@@ -97,7 +97,7 @@ func (app *App) createLanguage(w http.ResponseWriter, r *http.Request){
 		sendError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	sendResponse(w,http.StatusOK,lang)
+	sendResponse(w,http.StatusCreated,lang)
 }
 func (app *App) updateLanguage(w http.ResponseWriter, r *http.Request){
 	vars := mux.Vars(r)
