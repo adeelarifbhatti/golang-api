@@ -1,5 +1,9 @@
-# golang-api
-API in golang
+# golang-api (CRUD application)
+API in golang, it has functions for GET, Put, Create and Delete operations.
+
+docker-compose.yaml >> has two services, one for mysql and other for the golang.
+
+
 # it will be running on a Docker container,
-docker build . --tag golang-api
-docker run -it --rm -p 8080:8080 -v /home/adeel/Desktop/git/golang-api/:/app/ golang-api
+
+docker-compose up
