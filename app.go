@@ -19,9 +19,9 @@ func checkError(e error){
 		log.Fatalln(e)
 	}
 }
-func (app *App) Start(dbuser string, DbPassword string, DBName string) error {
+func (app *App) Start(username string, password string, database string) error {
 	var err error
-	connectString := fmt.Sprintf("%v:%v@tcp(mysql:3306)/%v",DbUser,DbPassword,DBName)
+	connectString := fmt.Sprintf("%v:%v@tcp(mysql:3306)/%v",username,password,database)
 	app.DB, err = sql.Open("mysql", connectString)
 	fmt.Println(app.DB)
 	checkError(err)
