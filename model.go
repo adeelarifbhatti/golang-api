@@ -33,7 +33,7 @@ func (l *language) getLanguage(db *sql.DB) error {
 	query := fmt.Sprintf("select name from languages where id=%v", l.ID)
 	row := db.QueryRow(query)
 	err := row.Scan(&l.NAME)
-	fmt.Println("\nfrom model getLanguage  ", l.NAME ,"\n")
+	fmt.Println("\nfrom model getLanguage  ", l.NAME )
 	if err != nil {
 		return err
 	}
