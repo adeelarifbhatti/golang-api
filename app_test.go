@@ -6,6 +6,8 @@ import(
 	"fmt"
 	"net/http/httptest"
 	"net/http"
+	"bytes"
+	"encoding/json"
 )
 var a App
 
@@ -53,13 +55,29 @@ func TestGetLanguage(t *testing.T) {
 	response := sendRequest(req)
 	checkStatusCode(t, http.StatusOK,response.Code)
 }
+func TestCreateLanguage(t *testing.T){
+	clearTable()
+	var language = []byte(`{"name": "Python"}`)
+	req, _ := http.NewRequest("POST","/language", bytes.NewBuffer(language))
+	req.Header.Set("Content-Type","application/json")
+	response := sendRequest(req)
+	checkStatusCode(t, http.StatusCreated,response.Code)
+	var m map[string]interface{}
+	var lang map[string]interface{}
+	json.Unmarshal(response.Body.Bytes(),&m)
+	json.Unmarshal(language, &lang)
+	if m["name"] != lang["name"] {
+		t.Error("Expected name ","Python", " Gotten is ", m["name"])
+	}
+
+}
 
 func checkStatusCode(t *testing.T, expect int, gotten int){
 	if expect != gotten {
 		t.Errorf("Expected %v, Got %v", expect,gotten)
 	}
 	if expect == gotten {
-	fmt.Println("expected was ### ", expect, " and what we got is ### " ,gotten)
+	fmt.Print(" Success ! \n expected was ### ", expect, " and what we got is ### " ,gotten)
 	}
 }
 func sendRequest(req *http.Request) *httptest.ResponseRecorder {
