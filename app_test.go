@@ -71,6 +71,22 @@ func TestCreateLanguage(t *testing.T){
 	}
 
 }
+func TestDeleteLanguage(t *testing.T) {
+	clearTable()
+	addLanguage("Golang")
+
+	req, _ := http.NewRequest("GET","/language/1",nil)
+	response := sendRequest(req)
+	checkStatusCode(t, http.StatusOK,response.Code)
+	//Delete the language
+	req, _ = http.NewRequest("DELETE","/language/1",nil)
+	response = sendRequest(req)
+	checkStatusCode(t, http.StatusOK,response.Code)
+	// Query for the deleted language
+	req, _ = http.NewRequest("GET","/language/1",nil)
+	response = sendRequest(req)
+	checkStatusCode(t, http.StatusNotFound,response.Code)
+}
 
 func checkStatusCode(t *testing.T, expect int, gotten int){
 	if expect != gotten {
