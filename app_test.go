@@ -37,8 +37,8 @@ func createDB() {
 	}
 }
 func clearTable() {
-	a.DB.Exec("delete from testing")
-	a.DB.Exec("Alter table testing Auto_Increment=1")
+	a.DB.Exec("delete from languages")
+	a.DB.Exec("Alter table languages Auto_Increment=1")
 }
 func addLanguage(name string){
 	clearTable()
@@ -86,6 +86,27 @@ func TestDeleteLanguage(t *testing.T) {
 	req, _ = http.NewRequest("GET","/language/1",nil)
 	response = sendRequest(req)
 	checkStatusCode(t, http.StatusNotFound,response.Code)
+}
+func TestUpdateLanguage(t *testing.T){
+	clearTable()
+	addLanguage("Julie")
+	req, _ := http.NewRequest("GET","/language/1",nil)
+	response := sendRequest(req)
+	var oldValue map[string]interface{}
+	json.Unmarshal(response.Body.Bytes(),&oldValue)
+
+	var language = []byte(`{"name": "Python"}`)
+	req, _ = http.NewRequest("PUT","/language/1", bytes.NewBuffer(language))
+	req.Header.Set("Content-Type","application/json")
+	response = sendRequest(req)
+
+	req, _ = http.NewRequest("GET","/language/1",nil)
+	response = sendRequest(req)
+	var newValue map[string]interface{}
+	json.Unmarshal(response.Body.Bytes(),&newValue)
+	if oldValue["name"] == newValue["name"] {
+		t.Error("Oldvalue i.e. ", oldValue["name"], "is equal to new langauge ", newValue["name"] ," Test failed" )
+	}
 }
 
 func checkStatusCode(t *testing.T, expect int, gotten int){
