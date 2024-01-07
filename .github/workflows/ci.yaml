@@ -1,0 +1,10 @@
+name: CI
+on: push
+env:
+  DB_Name: test
+jobs: 
+  run_code_checks:
+  runs-on: ubuntu-latest
+  steps:
+    - name: Build the app
+      run: docker-compose -f docker-compose-ci.yml up

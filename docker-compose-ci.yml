@@ -1,0 +1,24 @@
+version: "2.0"
+services:
+
+ golang-api:
+  build:
+   context: .
+   dockerfile: DockerfileTest
+  ports:
+   - "8080:8080"
+  volumes:
+   - /home/adeel/Desktop/git/golang-api/:/app
+  depends_on:
+   - mysql 
+ mysql:
+  image: mysql
+  environment:
+  - MYSQL_DATABASE=language
+  - MYSQL_ROOT_PASSWORD=changeme
+  - MYSQL_USER=dbuser
+  - MYSQL_PASSWORD=changeme
+  volumes:
+    - ./init-script.sql:/docker-entrypoint-initdb.d/init-script.sql
+  ports:
+   - "3306:3306" 
