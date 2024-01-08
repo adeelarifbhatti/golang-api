@@ -1,15 +1,38 @@
 name: CI
 on: push
-jobs:
-  docker:
-    timeout-minutes: 10
+env:
+  DB_NAME: testing
+jobs: 
+  run_code_checks:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v1
+    - name: Checkout Repo
+      uses: actions/checkout@v2
+    - name: set up Mysql
+      run: |
+        sudo /etc/init.d/mysql start
+        echo "127.0.0.1    mysql"| sudo tee -a /etc/hosts
+        sudo mysql -e 'create database language;' -uroot -proot
+        echo "source init-script.sql" | mysql -u root -proot -D language
+        sudo mysql -e 'Alter user "root"@"localhost" identified by "changeme";' -uroot -proot
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.21
+    - name: compiling
+      run: go build
+    - name: running the tests
+      run: go test
+# jobs:
+#   docker:
+#     timeout-minutes: 10
+#     runs-on: ubuntu-latest
 
-    - name: Start containers
-      run: docker-compose  up -d --build
-        # with:
-        # compose-file: "./../../docker-compose-ci.yml"
+#     steps:
+#     - name: Checkout
+#       uses: actions/checkout@v1
+
+#     - name: Start containers
+#       run: docker-compose  up -d --build
+#     - name: Go test
+#       run: docker exec golang-api_golang-api_1 go test
