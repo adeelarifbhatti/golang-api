@@ -61,7 +61,18 @@ This starts two services:
 - **mysql** — MySQL database on port `3306`, seeded with `init-script.sql`
 - **golang-api** — Go API server on port `8080`
 
+It builds two images from this repo:
+- `golang-api:latest` from `Dockerfile`
+- `golang-mysql:latest` from `DockerfileMySQL`
+
 The API will be available at `http://localhost:8080`.
+
+### Build Images Manually
+
+```bash
+docker build -t golang-api:latest -f Dockerfile .
+docker build -t golang-mysql:latest -f DockerfileMySQL .
+```
 
 ### Run Locally (without Docker)
 

@@ -1,0 +1,4 @@
+FROM mysql:8.0
+
+# Initialize schema/data on first startup.
+COPY init-script.sql /docker-entrypoint-initdb.d/init-script.sql
