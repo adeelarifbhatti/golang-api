@@ -44,7 +44,7 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Build and push Docker image
+      - name: Build and push golang-api image
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -53,6 +53,16 @@ jobs:
           tags: |
             myazurecontainerregistry1212.azurecr.io/golang-api:latest
             myazurecontainerregistry1212.azurecr.io/golang-api:${{ github.sha }}
+
+      - name: Build and push mysql image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./DockerfileMySQL
+          push: true
+          tags: |
+            myazurecontainerregistry1212.azurecr.io/mysql:latest
+            myazurecontainerregistry1212.azurecr.io/mysql:${{ github.sha }}
 # jobs:
 #   docker:
 #     timeout-minutes: 10
