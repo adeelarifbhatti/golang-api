@@ -25,6 +25,44 @@ jobs:
       run: go build
     - name: running the tests
       run: go test
+
+  push_docker_images:
+    needs: run_code_checks
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Azure Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: myazurecontainerregistry1212.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build and push golang-api image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            myazurecontainerregistry1212.azurecr.io/golang-api:latest
+            myazurecontainerregistry1212.azurecr.io/golang-api:${{ github.sha }}
+
+      - name: Build and push mysql image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./DockerfileMySQL
+          push: true
+          tags: |
+            myazurecontainerregistry1212.azurecr.io/mysql:latest
+            myazurecontainerregistry1212.azurecr.io/mysql:${{ github.sha }}
 # jobs:
 #   docker:
 #     timeout-minutes: 10
