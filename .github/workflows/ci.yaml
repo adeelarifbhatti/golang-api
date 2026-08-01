@@ -28,7 +28,7 @@ jobs:
 
   push_docker_images:
     needs: run_code_checks
-    # if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
