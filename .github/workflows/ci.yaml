@@ -28,7 +28,7 @@ jobs:
 
   push_docker_images:
     needs: run_code_checks
-    # if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -67,7 +67,7 @@ jobs:
   deploy_to_aks:
     name: Deploy to AKS
     needs: push_docker_images
-    # if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
       ACR_LOGIN_SERVER: ${{ secrets.ACR_REGISTRY }}
