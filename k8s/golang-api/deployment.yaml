@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: golang-api
+  namespace: golang-api
+  labels:
+    app: golang-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: golang-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: golang-api
+    spec:
+      containers:
+        - name: golang-api
+          # Replaced by CI: ACR_LOGIN_SERVER/golang-api:IMAGE_TAG
+          image: ACR_LOGIN_SERVER/golang-api:IMAGE_TAG
+          ports:
+            - containerPort: 8080
+          # NOTE: The app currently reads credentials from constants.go.
+          # Update main.go to read os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"),
+          # and os.Getenv("DB_NAME") so these secrets are actually consumed.
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: mysql-user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: mysql-password
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: mysql-database
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /languages
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /languages
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 3

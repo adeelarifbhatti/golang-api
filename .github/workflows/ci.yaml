@@ -40,7 +40,7 @@ jobs:
       - name: Login to Azure Container Registry
         uses: docker/login-action@v3
         with:
-          registry: myazurecontainerregistry1212.azurecr.io
+          registry: ${{ secrets.ACR_REGISTRY }}
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
@@ -51,8 +51,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            myazurecontainerregistry1212.azurecr.io/golang-api:latest
-            myazurecontainerregistry1212.azurecr.io/golang-api:${{ github.sha }}
+            ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_GO_IMAGE_NAME }}:latest
+            ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_GO_IMAGE_NAME}}:${{ github.sha }}
 
       - name: Build and push mysql image
         uses: docker/build-push-action@v7
@@ -61,8 +61,53 @@ jobs:
           file: ./DockerfileMySQL
           push: true
           tags: |
-            myazurecontainerregistry1212.azurecr.io/mysql:latest
-            myazurecontainerregistry1212.azurecr.io/mysql:${{ github.sha }}
+            ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_MYSQL_IMAGE_NAME }}:latest
+            ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_MYSQL_IMAGE_NAME}}:${{ github.sha }}
+
+  deploy_to_aks:
+    name: Deploy to AKS
+    needs: push_docker_images
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      ACR_LOGIN_SERVER: ${{ secrets.ACR_REGISTRY }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v4
+        with:
+          resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
+          cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
+
+      - name: Substitute image placeholders in manifests
+        run: |
+          find k8s -name "*.yaml" -exec sed -i \
+            -e "s|ACR_LOGIN_SERVER|${{ env.ACR_LOGIN_SERVER }}|g" \
+            -e "s|IMAGE_TAG|${{ github.sha }}|g" \
+            {} +
+
+      - name: Apply namespace
+        run: kubectl apply -f k8s/namespace.yaml
+
+      - name: Apply MySQL manifests
+        run: kubectl apply -f k8s/mysql/
+
+      - name: Wait for MySQL to be ready
+        run: kubectl rollout status deployment/mysql -n golang-api --timeout=120s
+
+      - name: Apply golang-api manifests
+        run: kubectl apply -f k8s/golang-api/
+
+      - name: Wait for golang-api rollout
+        run: kubectl rollout status deployment/golang-api -n golang-api --timeout=120s
+
 # jobs:
 #   docker:
 #     timeout-minutes: 10
