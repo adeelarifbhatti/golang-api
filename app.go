@@ -9,7 +9,8 @@ import  (
 		"fmt"
 		"strconv"
 		"encoding/json"
-		)
+		"github.com/prometheus/client_golang/prometheus/promhttp"
+	)
 type App struct {
 	Router *mux.Router
 	DB *sql.DB
@@ -38,6 +39,7 @@ func (app *App) handleRoute() {
 	 app.Router.HandleFunc("/language", app.createLanguage).Methods("POST")
 	 app.Router.HandleFunc("/language/{id}", app.updateLanguage).Methods("PUT")
 	 app.Router.HandleFunc("/language/{id}", app.deleteLanguage).Methods("DELETE")
+	 app.Router.Handle("/metrics", promhttp.Handler()).Methods("GET")
 }
 
 func sendResponse(w http.ResponseWriter, statusCode int, payload interface{}){
